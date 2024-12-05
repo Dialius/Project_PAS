@@ -1,45 +1,88 @@
-let failedAttempts = 0; // Menyimpan jumlah percobaan gagal
+// menampilkan/menyembunyikan password
+function hideseek() {
+    const passwordField = document.getElementById('password');
+    passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+}
 
-document.getElementById('loginForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-
+function kirimData() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
-    // Data pengguna yang valid
+    // Data pengguna yang benar
     const validUsers = [
-        { username: 'admin1', password: 'admin1234'},
-        { username: 'user1', password: 'user1234' },
-        { username: 'user2', password: 'user1234' },
-        { username: 'user3', password: 'user1234' }
+        { username: 'admin', password: 'admin123', level: 'admin' },
+        { username: 'user', password: 'user123', level: 'user' }
     ];
 
-    // Cek validitas username dan password
-    let isValidUser  = false;
-    for (let i = 0; i < validUsers.length; i++) {
-        if (validUsers[i].username === username && validUsers[i].password === password) {
-            isValidUser  = true;
+    if (username.length < 3) {
+        validasiError.push('Username minimal 3 karakter');
+    }
+
+    let loginBerhasil = false;
+    let userLevel = '';
+    for (let user of validUsers) {
+        if (user.username === username && user.password === password) {
+            loginBerhasil = true;
+            userLevel = user.level;
             break;
         }
     }
 
-    // Tampilkan pesan sesuai dengan hasil validasi
-    const messageElement = document.getElementById('message');
-    if (isValidUser ) {
-        messageElement.style.color = 'green';
-        messageElement.textContent = 'Login berhasil!';
+    // Proses login
+    if (loginBerhasil) {
+        // Simpan data ke localStorage
+        localStorage.setItem('username', username);
+        localStorage.setItem('userLevel', userLevel);
+        
+        // Simpan riwayat login
+        simpanRiwayatLogin(username, userLevel);
 
-        // Redireksi ke halaman home
-        window.location.href = 'home.html'; 
+        // Redirect berdasarkan level
+        redirectBerdasarkanLevel(userLevel);
+        return true;
     } else {
-        failedAttempts++;
-        messageElement.style.color = 'red';
-        messageElement.textContent = 'Username atau password salah.';
+        alert('Username atau password salah!');
+        return false;
+    }
+}
 
-        // Cek jika sudah 3 kali percobaan gagal
-        if (failedAttempts >= 3) {
-            // Redirect ke halaman reset password
-            window.location.href = 'reset_password.html'; 
+// Fungsi redirect berdasarkan level
+function redirectBerdasarkanLevel(level) {
+    const redirectMap = {
+        'admin': 'admin-dashboard.html',
+        'user': 'index.html'
+    };
+
+    // Looping untuk mencari halaman redirect
+    for (let [userLevel, halaman] of Object.entries(redirectMap)) {
+        if (level === userLevel) {
+            window.location.href = halaman;
+            return;
         }
     }
-});
+
+    // Jika level tidak ditemukan
+    window.location.href = 'index1.html';
+}
+
+// Fungsi untuk menyimpan riwayat login dengan informasi tambahan
+function simpanRiwayatLogin(username, level) {
+    // Ambil riwayat login yang sudah ada
+    let riwayatLogin = JSON.parse(localStorage.getItem('riwayatLogin') || '[]');
+
+    // Tambahkan entri login baru
+    const loginBaru = {
+        username: username,
+        level: level,
+        waktu: new Date().toLocaleString(),
+        ip: generateFakeIP(), // Simulasi alamat IP
+        browser: detectBrowser() // Simulasi deteksi browser
+    };
+
+    // Batasi riwayat login maksimal 3 entri
+    while (riwayatLogin.length >= 3) 
+
+    // Simpan entri login baru
+    riwayatLogin.push(loginBaru);
+    localStorage.setItem('riwayatLogin', JSON.stringify(riwayatLogin));
+}
